@@ -1,13 +1,13 @@
 namespace H3_Symmetric_encryption.Views
 {
-    public static class MainView
+    internal static class MainView
     {
-        public static void CustomOutput(string message)
+        internal static void CustomOutput(string message)
         {
             Console.WriteLine(message);
         }
 
-        public static void CustomMenu(string[] menuItems)
+        internal static string CustomMenu(string[] menuItems)
         {
             for (int i = 0; i < menuItems.Length; i++)
             {
@@ -16,15 +16,20 @@ namespace H3_Symmetric_encryption.Views
 
                 Console.WriteLine($"{i + 1}. {menuItems[i]}");
             }
+
+            Console.ForegroundColor = ConsoleColor.White;
+
+            string userInput = Console.ReadLine() ?? "";
+            return userInput;
         }
 
-        public static string GetUserInputWithTitle(string message)
+        internal static string GetUserInputWithTitle(string message)
         {
             Console.WriteLine(message);
             return Console.ReadLine() ?? "";
         }
 
-        public static string GetUserInput()
+        internal static string GetUserInput()
         {
             return Console.ReadLine() ?? "";
         }

@@ -1,6 +1,8 @@
 ﻿using H3_Symmetric_encryption.Controllers;
+using H3_Symmetric_encryption.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using H3_Symmetric_encryption.Interfaces.Controllers;
+using H3_Symmetric_encryption.Interfaces.Repositories;
 
 namespace H3_Symmetric_encryption
 {
@@ -13,7 +15,7 @@ namespace H3_Symmetric_encryption
 			using (IServiceScope scope = serviceProvider.CreateScope())
 			{
 				IMainController mainController = scope.ServiceProvider.GetRequiredService<IMainController>();
-				mainController.HandleMainMenuDisplay();
+				mainController.HandleMainMenu();
 			}
 		}
 
@@ -22,6 +24,16 @@ namespace H3_Symmetric_encryption
 			ServiceCollection serviceCollection = new ServiceCollection();
 
 			serviceCollection.AddSingleton<IMainController, MainController>();
+			serviceCollection.AddSingleton<IHexadecimalController, HexadecimalController>();
+			serviceCollection.AddSingleton<ITestResultsController, TestResultsController>();
+			serviceCollection.AddSingleton<IAesEncryptionController, AesEncryptionController>();
+			serviceCollection.AddSingleton<IDesEncryptionController, DesEncryptionController>();
+			serviceCollection.AddSingleton<IPerformanceTestController, PerformanceTestController>();
+			serviceCollection.AddSingleton<IRijndaelEncryptionController, RijndaelEncryptionController>();
+
+			serviceCollection.AddScoped<IFileController, FileController>();
+
+			serviceCollection.AddSingleton<IAlgorithmPerformanceRepository, AlgorithmPerformanceRepository>();
 
 			ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 			return serviceProvider;

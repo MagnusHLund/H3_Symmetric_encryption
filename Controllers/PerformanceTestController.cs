@@ -3,7 +3,6 @@ using H3_Symmetric_encryption.Views;
 using H3_Symmetric_encryption.Mappers;
 using H3_Symmetric_encryption.Entities;
 using H3_Symmetric_encryption.Interfaces.Controllers;
-using System.Threading.Tasks;
 
 namespace H3_Symmetric_encryption.Controllers
 {
@@ -54,7 +53,7 @@ namespace H3_Symmetric_encryption.Controllers
 
         private void PrepareTests(string data)
         {
-            _fileController.CreateNewFile();
+            _fileController.CreateNewFileAsync();
             _fileController.SaveFileAsync(data);
         }
 

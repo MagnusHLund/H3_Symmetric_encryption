@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "H3_Symmetric_encryption", "H3_Symmetric_encryption.csproj", "{84840F71-1BED-4A92-A895-8AC8BF2F0773}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84840F71-1BED-4A92-A895-8AC8BF2F0773}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84840F71-1BED-4A92-A895-8AC8BF2F0773}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84840F71-1BED-4A92-A895-8AC8BF2F0773}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84840F71-1BED-4A92-A895-8AC8BF2F0773}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B192E04-A408-479C-9C1E-CA2715C5A14E}
+	EndGlobalSection
+EndGlobal

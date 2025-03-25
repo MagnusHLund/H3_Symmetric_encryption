@@ -20,18 +20,19 @@ namespace H3_Symmetric_encryption.Controllers
 
         public void HandleMainMenu()
         {
-            string input = MainMenuView.SelectMainMenuOption();
-
-            switch (input)
+            while (true)
             {
-                case "1":
-                    _performanceTestController.HandleTestEncryptionPerformanceMenu();
-                    break;
-                case "2":
-                    _testResultsController.HandleViewTestResultsMenu();
-                    break;
-                default:
-                    throw new InvalidOperationException("Input is out of range");
+                string input = MainMenuView.SelectMainMenuOption();
+
+                switch (input)
+                {
+                    case "1":
+                        _performanceTestController.HandleTestEncryptionPerformanceMenu();
+                        break;
+                    case "2":
+                        _testResultsController.HandleViewTestResultsMenu();
+                        break;
+                }
             }
         }
     }

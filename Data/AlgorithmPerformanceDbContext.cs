@@ -59,6 +59,10 @@ namespace H3_Symmetric_encryption.Data
             modelBuilder.Entity<AlgorithmPerformanceEntity>()
                 .HasIndex(a => a.Workload);
 
+            modelBuilder.Entity<AlgorithmPerformanceEntity>()
+                .HasIndex(a => new { a.AlgorithmId, a.PlainTextSizeInBytes, a.Workload })
+                .IsUnique();
+
             // Seeding
             List<AlgorithmEntity> algorithms = AlgorithmMapper.GetAllAlgorithms();
 

@@ -6,17 +6,19 @@ namespace H3_Symmetric_encryption.Controllers
     {
         private string? _filePath;
 
-        public async void SaveFileAsync(string data)
+        public async Task SaveFileAsync(string data)
         {
-            EnsureFileExists(_filePath);
+            EnsureFilePathIsSet();
 
+            // Use asynchronous file writing
             await File.WriteAllTextAsync(_filePath, data);
         }
 
         public async Task<string> LoadFileAsync()
         {
-            EnsureFileExists(_filePath);
+            EnsureFilePathIsSet();
 
+            // Use asynchronous file reading
             return await File.ReadAllTextAsync(_filePath);
         }
 
@@ -27,30 +29,29 @@ namespace H3_Symmetric_encryption.Controllers
 
             _filePath = filePath;
 
-            using (var stream = File.Create(filePath))
+            // Create the file asynchronously
+            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
             {
-                await stream.DisposeAsync();
+                await stream.FlushAsync(); // Ensure the file is created and flushed
             }
         }
 
         public async void DeleteFile()
         {
-            EnsureFileExists(_filePath);
+            EnsureFilePathIsSet();
 
-            File.Delete(_filePath);
-            _filePath = null;
+            if (File.Exists(_filePath))
+            {
+                File.Delete(_filePath);
+                _filePath = null;
+            }
         }
 
-        private void EnsureFileExists(string? filePath)
+        private void EnsureFilePathIsSet()
         {
             if (string.IsNullOrEmpty(_filePath))
             {
                 throw new InvalidOperationException("No file path has been set.");
-            }
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException("File not found", filePath);
             }
         }
     }

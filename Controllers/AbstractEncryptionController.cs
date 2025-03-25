@@ -34,9 +34,8 @@ namespace H3_Symmetric_encryption.Controllers
 
             string encryptionKey = keySizeBits switch
             {
-                56 => "j!Yd2f3",
+                64 => "j!Yd2f3g",
                 128 => "d/2favmNncA24sku",
-                168 => "23fjvc8x9sa1&ffvxamdu",
                 192 => "jSA3fdxCvuf4!9FklAsfv72H",
                 256 => "FDvc1#8fjmdsa843lscvms12vdAl3!vI",
                 _ => throw new ArgumentException("Invalid key size.")
@@ -46,20 +45,55 @@ namespace H3_Symmetric_encryption.Controllers
             return encodedEncryptionKey;
         }
 
-        private protected string EncryptData(ICryptoTransform encryptor, string data)
+        private protected string EncryptData(SymmetricAlgorithm algorithm, string dataToEncrypt, ushort KeySizeBits)
         {
-            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+            byte[] encryptionKey = GetEncryptionKey(KeySizeBits);
+            byte[] iv = GenerateIv();
+
+            algorithm.KeySize = KeySizeBits;
+            algorithm.BlockSize = _blockSizeInBits;
+            algorithm.IV = iv;
+            algorithm.Key = encryptionKey;
+
+            ICryptoTransform encryptor = algorithm.CreateEncryptor(algorithm.Key, algorithm.IV);
+
+            byte[] dataBytes = Encoding.UTF8.GetBytes(dataToEncrypt);
             byte[] encryptedData = encryptor.TransformFinalBlock(dataBytes, 0, dataBytes.Length);
 
-            return Convert.ToBase64String(encryptedData);
+            byte[] combinedData = new byte[iv.Length + encryptedData.Length];
+            Buffer.BlockCopy(iv, 0, combinedData, 0, iv.Length);
+            Buffer.BlockCopy(encryptedData, 0, combinedData, iv.Length, encryptedData.Length);
+
+            return Convert.ToBase64String(combinedData);
         }
 
-        private protected string DecryptData(ICryptoTransform decryptor, string data)
+        private protected string DecryptData(SymmetricAlgorithm algorithm, string dataToDecrypt, ushort keySizeBits)
         {
-            byte[] encryptedData = Convert.FromBase64String(data);
+            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
+            byte[] encryptedDataWithIv = Convert.FromBase64String(dataToDecrypt);
+
+            algorithm.KeySize = keySizeBits;
+            algorithm.BlockSize = _blockSizeInBits;
+            algorithm.Key = encryptionKey;
+
+            var (iv, encryptedData) = SeparateIvAndEncryptedData(encryptedDataWithIv, algorithm);
+
+            algorithm.IV = iv;
+
+            ICryptoTransform decryptor = algorithm.CreateDecryptor(algorithm.Key, algorithm.IV);
             byte[] decryptedData = decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
 
             return Encoding.UTF8.GetString(decryptedData);
+        }
+
+        private static (byte[] iv, byte[] encryptedData) SeparateIvAndEncryptedData(byte[] encryptedDataWithIv, SymmetricAlgorithm algorithm)
+        {
+            byte[] iv = new byte[algorithm.BlockSize / 8];
+            byte[] encryptedData = new byte[encryptedDataWithIv.Length - iv.Length];
+            Buffer.BlockCopy(encryptedDataWithIv, 0, iv, 0, iv.Length);
+            Buffer.BlockCopy(encryptedDataWithIv, iv.Length, encryptedData, 0, encryptedData.Length);
+
+            return (iv, encryptedData);
         }
     }
 }

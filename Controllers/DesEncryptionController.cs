@@ -10,83 +10,42 @@ namespace H3_Symmetric_encryption.Controllers
 
         public DesEncryptionController()
         {
-            _allowedKeySizesInBits = [56, 168];
+            _allowedKeySizesInBits = [64, 192];
             _blockSizeInBits = 64;
         }
 
         public string EncryptDesCsp(string data, ushort keySizeBits)
         {
-            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
-            byte[] iv = GenerateIv();
-
             using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
             {
-                des.KeySize = keySizeBits;
-                des.BlockSize = _blockSizeInBits;
-                des.IV = iv;
-                des.Key = encryptionKey;
-
-                ICryptoTransform encryptor = des.CreateEncryptor(des.Key, des.IV);
-
-                string encryptedData = EncryptData(encryptor, data);
+                string encryptedData = EncryptData(des, data, keySizeBits);
                 return encryptedData;
             }
         }
 
-
         public string DecryptDesCsp(string data, ushort keySizeBits)
         {
-            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
-            byte[] iv = GenerateIv();
-
             using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
             {
-                des.KeySize = keySizeBits;
-                des.BlockSize = _blockSizeInBits;
-                des.IV = iv;
-                des.Key = encryptionKey;
-
-                ICryptoTransform decryptor = des.CreateDecryptor(des.Key, des.IV);
-
-                string decryptedData = DecryptData(decryptor, data);
+                string decryptedData = DecryptData(des, data, keySizeBits);
                 return decryptedData;
             }
         }
 
         public string EncryptTripleDesCsp(string data, ushort keySizeBits)
         {
-            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
-            byte[] iv = GenerateIv();
-
             using (TripleDESCryptoServiceProvider tripleDes = new TripleDESCryptoServiceProvider())
             {
-                tripleDes.KeySize = keySizeBits;
-                tripleDes.BlockSize = _blockSizeInBits;
-                tripleDes.IV = iv;
-                tripleDes.Key = encryptionKey;
-
-                ICryptoTransform encryptor = tripleDes.CreateEncryptor(tripleDes.Key, tripleDes.IV);
-
-                string encryptedData = EncryptData(encryptor, data);
+                string encryptedData = EncryptData(tripleDes, data, keySizeBits);
                 return encryptedData;
             }
         }
 
         public string DecryptTripleDesCsp(string data, ushort keySizeBits)
         {
-            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
-            byte[] iv = GenerateIv();
-
             using (TripleDESCryptoServiceProvider tripleDes = new TripleDESCryptoServiceProvider())
             {
-                tripleDes.KeySize = keySizeBits;
-                tripleDes.BlockSize = _blockSizeInBits;
-                tripleDes.IV = iv;
-                tripleDes.Key = encryptionKey;
-
-                ICryptoTransform decryptor = tripleDes.CreateDecryptor(tripleDes.Key, tripleDes.IV);
-
-                string decryptedData = DecryptData(decryptor, data);
+                string decryptedData = DecryptData(tripleDes, data, keySizeBits);
                 return decryptedData;
             }
         }

@@ -1,4 +1,6 @@
-﻿using H3_Symmetric_encryption.Controllers;
+﻿using H3_Symmetric_encryption.Data;
+using Microsoft.EntityFrameworkCore;
+using H3_Symmetric_encryption.Controllers;
 using H3_Symmetric_encryption.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using H3_Symmetric_encryption.Interfaces.Controllers;
@@ -14,6 +16,9 @@ namespace H3_Symmetric_encryption
 
 			using (IServiceScope scope = serviceProvider.CreateScope())
 			{
+				var dbContext = scope.ServiceProvider.GetRequiredService<AlgorithmPerformanceDbContext>();
+				dbContext.Database.Migrate(); 
+
 				IMainController mainController = scope.ServiceProvider.GetRequiredService<IMainController>();
 				mainController.HandleMainMenu();
 			}
@@ -34,7 +39,11 @@ namespace H3_Symmetric_encryption
 			serviceCollection.AddScoped<IFileController, FileController>();
 
 			serviceCollection.AddSingleton<IAlgorithmPerformanceRepository, AlgorithmPerformanceRepository>();
-			
+
+			serviceCollection.AddDbContext<AlgorithmPerformanceDbContext>(options =>
+				options.UseSqlite("Data Source=AlgorithmPerformance.db")
+			);
+
 			ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 			return serviceProvider;
 		}

@@ -12,50 +12,24 @@ namespace H3_Symmetric_encryption.Controllers
         public RijndaelEncryptionController()
         {
             _allowedKeySizesInBits = [128, 192, 256];
-            _blockSizeInBits = 256;
+            _blockSizeInBits = 128;
         }
 
         public string EncryptRijndaelManaged(string data, ushort keySizeBits)
         {
-            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
-            byte[] iv = GenerateIv();
-
             using (RijndaelManaged rijndael = new RijndaelManaged())
             {
-                rijndael.KeySize = keySizeBits;
-                rijndael.BlockSize = _blockSizeInBits;
-                rijndael.IV = iv;
-                rijndael.Key = encryptionKey;
-
-                ICryptoTransform encryptor = rijndael.CreateEncryptor(rijndael.Key, rijndael.IV);
-
-                byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-                byte[] encryptedData = encryptor.TransformFinalBlock(dataBytes, 0, dataBytes.Length);
-
-                string encryptedDataString = Convert.ToBase64String(encryptedData);
-                return encryptedDataString;
+                string encryptedData = EncryptData(rijndael, data, keySizeBits);
+                return encryptedData;
             }
         }
 
         public string DecryptRijndaelManaged(string data, ushort keySizeBits)
         {
-            byte[] encryptionKey = GetEncryptionKey(keySizeBits);
-            byte[] iv = GenerateIv();
-
             using (RijndaelManaged rijndael = new RijndaelManaged())
             {
-                rijndael.KeySize = keySizeBits;
-                rijndael.BlockSize = _blockSizeInBits;
-                rijndael.IV = iv;
-                rijndael.Key = encryptionKey;
-
-                ICryptoTransform decryptor = rijndael.CreateDecryptor(rijndael.Key, rijndael.IV);
-
-                byte[] encryptedData = Convert.FromBase64String(data);
-                byte[] decryptedData = decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
-
-                string decryptedDataString = Encoding.UTF8.GetString(decryptedData);
-                return decryptedDataString;
+                string encryptedData = DecryptData(rijndael, data, keySizeBits);
+                return encryptedData;
             }
         }
     }

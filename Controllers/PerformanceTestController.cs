@@ -2,6 +2,7 @@ using System.Diagnostics;
 using H3_Symmetric_encryption.Views;
 using H3_Symmetric_encryption.Mappers;
 using H3_Symmetric_encryption.Entities;
+using System.ComponentModel.DataAnnotations;
 using H3_Symmetric_encryption.Interfaces.Controllers;
 
 namespace H3_Symmetric_encryption.Controllers
@@ -29,7 +30,7 @@ namespace H3_Symmetric_encryption.Controllers
             _fileController = fileController;
         }
 
-        public void HandleTestEncryptionPerformanceMenu()
+        public async Task HandleTestEncryptionPerformanceMenu()
         {
             int algorithmInput = int.Parse(AlgorithmView.SelectAlgorithmMenu());
 
@@ -38,12 +39,17 @@ namespace H3_Symmetric_encryption.Controllers
 
             string textToEncrypt = MainView.GetUserInputWithTitle("Enter text to encrypt");
 
+            if (string.IsNullOrEmpty(textToEncrypt))
+            {
+                throw new ValidationException("Text to encrypt cannot be empty");
+            }
+
             try
             {
                 PrepareTests(textToEncrypt);
 
                 var (encryptMethod, decryptMethod, bits) = GetAlgorithmMethods(algorithmInput);
-                PerformTests(encryptMethod, decryptMethod, textToEncrypt, bits, algorithmId);
+                await PerformTests(encryptMethod, decryptMethod, textToEncrypt, bits, algorithmId);
             }
             finally
             {
@@ -61,7 +67,7 @@ namespace H3_Symmetric_encryption.Controllers
             Func<string, ushort, string> encryptionMethod,
             Func<string, ushort, string> decryptionMethod,
             string data,
-            ushort bits,
+            ushort keySizeBits,
             int algorithmId
         )
         {
@@ -69,33 +75,37 @@ namespace H3_Symmetric_encryption.Controllers
 
             // In memory encryption
             stopwatch.Start();
-            string memoryEncryptedValue = encryptionMethod(data, bits);
+            string memoryEncryptedValue = encryptionMethod(data, keySizeBits);
             stopwatch.Stop();
             long memoryEncryptionTime = stopwatch.ElapsedMilliseconds;
 
             // In memory decryption
             stopwatch.Restart();
-            string memoryDecryptedValue = decryptionMethod(memoryEncryptedValue, bits);
+            string memoryDecryptedValue = decryptionMethod(memoryEncryptedValue, keySizeBits);
             stopwatch.Stop();
             long memoryDecryptionTime = stopwatch.ElapsedMilliseconds;
 
             // File encryption
             stopwatch.Restart();
-            string fileEncryptedValue = encryptionMethod(await _fileController.LoadFileAsync(), bits);
+            string fileEncryptedValue = encryptionMethod(await _fileController.LoadFileAsync(), keySizeBits);
             stopwatch.Stop();
             long fileEncryptionTime = stopwatch.ElapsedMilliseconds;
 
             // File decryption
             stopwatch.Restart();
-            string fileDecryptedValue = decryptionMethod(await _fileController.LoadFileAsync(), bits); // TODO: Research if there is a performance difference in assigning the value to a variable or not. If not, delete it.
+            string fileDecryptedValue = decryptionMethod(await _fileController.LoadFileAsync(), keySizeBits); // TODO: Research if there is a performance difference in assigning the value to a variable or not. If not, delete it.
             stopwatch.Stop();
             long fileDecryptionTime = stopwatch.ElapsedMilliseconds;
 
-            int blockSize = data.Length;
-            AlgorithmPerformanceEntity encryptionResults = CalculateTestResults(memoryEncryptionTime, fileEncryptionTime, blockSize, algorithmId, "encryption");
-            AlgorithmPerformanceEntity decryptionResults = CalculateTestResults(memoryDecryptionTime, fileDecryptionTime, blockSize, algorithmId, "decryption");
+            if (memoryDecryptedValue != data || fileDecryptedValue != data)
+            {
+                throw new InvalidOperationException("Decrypted values do not match original data");
+            }
 
-            _testResultsController.SaveTestResults(new AlgorithmPerformanceEntity[] { encryptionResults, decryptionResults });
+            AlgorithmPerformanceEntity encryptionResults = CalculateTestResults(memoryEncryptionTime, fileEncryptionTime, keySizeBits, algorithmId, "encryption");
+            AlgorithmPerformanceEntity decryptionResults = CalculateTestResults(memoryDecryptionTime, fileDecryptionTime, keySizeBits, algorithmId, "decryption");
+
+            _testResultsController.SaveTestResults([encryptionResults, decryptionResults]);
         }
 
         private void CleanupTests()
@@ -103,15 +113,15 @@ namespace H3_Symmetric_encryption.Controllers
             _fileController.DeleteFile();
         }
 
-        private static AlgorithmPerformanceEntity CalculateTestResults(long memoryCipherTime, long fileCipherTime, int blockSize, int algorithmId, string workLoad)
+        private static AlgorithmPerformanceEntity CalculateTestResults(long memoryCipherTime, long fileCipherTime, int keySizeBits, int algorithmId, string workLoad)
         {
             double secondsPerBlock = memoryCipherTime / 1000.0;
-            double bytesPerSecondMemory = blockSize / (memoryCipherTime / 1000.0);
-            double bytesPerSecondFile = blockSize / (fileCipherTime / 1000.0);
+            double bytesPerSecondMemory = keySizeBits / (memoryCipherTime / 1000.0);
+            double bytesPerSecondFile = keySizeBits / (fileCipherTime / 1000.0);
 
             return new AlgorithmPerformanceEntity(
                 algorithmId,
-                blockSize,
+                keySizeBits,
                 secondsPerBlock,
                 bytesPerSecondMemory,
                 bytesPerSecondFile,
@@ -128,9 +138,10 @@ namespace H3_Symmetric_encryption.Controllers
                 3 => (_aesEncryptionController.EncryptAesManaged, _aesEncryptionController.DecryptAesManaged, 128),
                 4 => (_aesEncryptionController.EncryptAesManaged, _aesEncryptionController.DecryptAesManaged, 256),
                 5 => (_rijndaelEncryptionController.EncryptRijndaelManaged, _rijndaelEncryptionController.DecryptRijndaelManaged, 128),
-                6 => (_rijndaelEncryptionController.EncryptRijndaelManaged, _rijndaelEncryptionController.DecryptRijndaelManaged, 256),
-                7 => (_desEncryptionController.EncryptDesCsp, _desEncryptionController.DecryptDesCsp, 56),
-                8 => (_desEncryptionController.EncryptTripleDes, _desEncryptionController.DecryptTripleDes, 168),
+                6 => (_rijndaelEncryptionController.EncryptRijndaelManaged, _rijndaelEncryptionController.DecryptRijndaelManaged, 192),
+                7 => (_rijndaelEncryptionController.EncryptRijndaelManaged, _rijndaelEncryptionController.DecryptRijndaelManaged, 256),
+                8 => (_desEncryptionController.EncryptDesCsp, _desEncryptionController.DecryptDesCsp, 56),
+                9 => (_desEncryptionController.EncryptTripleDesCsp, _desEncryptionController.DecryptTripleDesCsp, 168),
                 _ => throw new InvalidOperationException("Input is out of range")
             };
         }

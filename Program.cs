@@ -34,7 +34,7 @@ namespace H3_Symmetric_encryption
 			serviceCollection.AddScoped<IFileController, FileController>();
 
 			serviceCollection.AddSingleton<IAlgorithmPerformanceRepository, AlgorithmPerformanceRepository>();
-
+			
 			ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 			return serviceProvider;
 		}

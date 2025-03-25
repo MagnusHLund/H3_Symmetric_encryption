@@ -9,6 +9,18 @@ namespace H3_Symmetric_encryption.Data
         public DbSet<AlgorithmEntity> AlgorithmEntities { get; set; }
         public DbSet<AlgorithmPerformanceEntity> AlgorithmPerformanceEntities { get; set; }
 
+        public AlgorithmPerformanceDbContext(DbContextOptions<AlgorithmPerformanceDbContext> options) : base(options) { }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if(!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlite("Data Source=AlgorithmPerformance.db");
+            }
+
+            base.OnConfiguring(optionsBuilder);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Algorithm table configuration
@@ -23,7 +35,7 @@ namespace H3_Symmetric_encryption.Data
                 .ValueGeneratedNever();
 
             modelBuilder.Entity<AlgorithmEntity>()
-                .HasIndex(a => new { a.Name, a.Bits })
+                .HasIndex(a => new { a.Name, a.KeySizeBits })
                 .IsUnique();
 
             // AlgorithmPerformance table configuration
@@ -32,7 +44,7 @@ namespace H3_Symmetric_encryption.Data
 
             modelBuilder.Entity<AlgorithmPerformanceEntity>()
                 .HasKey(ap => ap.AlgorithmPerformanceId);
-            
+
             modelBuilder.Entity<AlgorithmPerformanceEntity>()
                 .HasOne(ap => ap.Algorithm)
                 .WithMany(a => a.AlgorithmPerformanceEntities)
